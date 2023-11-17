@@ -1,0 +1,27 @@
+version: "3"
+
+services:
+  front:
+    image: front
+    container_name: front
+    build:
+      context: ./front
+      dockerfile: ./.docker/Dockerfile
+    ports:
+      - 3000:3000
+    volumes:
+      - ./front/src:/usr/front/src
+    entrypoint: ["yarn", "start"]
+
+  app:
+    build:
+      context: ./server
+      dockerfile: ./.docker/Dockerfile
+    ports:
+      - 8080:8080
+    networks:
+      - ns
+
+networks:
+  ns:
+    driver: bridge
