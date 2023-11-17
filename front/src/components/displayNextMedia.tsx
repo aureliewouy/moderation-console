@@ -1,21 +1,10 @@
 import React, { useEffect, useState } from "react";
-import {
-  useQuery,
-  useMutation,
-  MutationFunction,
-  FetchResult,
-} from "@apollo/client";
+import { useQuery, useMutation, MutationFunction } from "@apollo/client";
 import { LOAD_MEDIA } from "../graphql/queries";
 import { CENSOR_MEDIA, VALIDATE_MEDIA } from "../graphql/mutations";
 import Loading from "./loading";
 import Error from "./error";
-import {
-  CensorResponse,
-  Media,
-  Moderation,
-  Mutation,
-  ValidResponse,
-} from "../utils/interfaces";
+import { Media, Moderation, Mutation } from "../utils/interfaces";
 
 import ModalSuccess from "./modalSuccess";
 import MediaModeration from "./mediaModeration";
@@ -29,7 +18,7 @@ function DisplayNextMedia(): JSX.Element {
   const [reason, setReason] = useState<string>("");
   const [censorMedia] = useMutation(CENSOR_MEDIA);
   const [validateMedia] = useMutation(VALIDATE_MEDIA);
-  const [showModalSuccess, setShowModalSuccess] = useState<boolean>(false);
+  const [modalSuccess, setModalSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     const nextTaskMedia = data?.moderation?.nextTask?.media;
@@ -40,14 +29,14 @@ function DisplayNextMedia(): JSX.Element {
 
   useEffect(() => {
     let timeout: NodeJS.Timeout;
-    if (showModalSuccess) {
+    if (modalSuccess) {
       timeout = setTimeout(() => {
-        setShowModalSuccess(false);
+        setModalSuccess(null);
       }, 3000);
     }
 
     return () => clearTimeout(timeout);
-  }, [showModalSuccess]);
+  }, [modalSuccess]);
 
   const handleSkip = () => {
     refetch();
@@ -69,12 +58,15 @@ function DisplayNextMedia(): JSX.Element {
       };
 
       mutationFunction(variablesMutations)
-        .then((response: FetchResult<ValidResponse | CensorResponse>) => {
+        .then((response) => {
+          const status =
+            "mediaValid" in response.data
+              ? response.data.mediaValid.status
+              : response.data.mediaCensor.status;
           setReason("");
           setErrorDisplay(undefined);
           handleSkip();
-          setShowModalSuccess(true);
-          console.log("Mutation Response: ", response);
+          setModalSuccess(status);
         })
         .catch((error: string) => {
           setErrorDisplay(`Mutation Error: ${error}`);
@@ -105,7 +97,7 @@ function DisplayNextMedia(): JSX.Element {
           errorDisplay={errorDisplay}
         />
       )}
-      {showModalSuccess && <ModalSuccess />}
+      {modalSuccess && <ModalSuccess modalSuccess={modalSuccess} />}
     </div>
   );
 }

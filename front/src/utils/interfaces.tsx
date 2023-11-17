@@ -31,19 +31,3 @@ export interface Mutation {
     };
   };
 }
-export interface ValidResponse {
-  data: {
-    mediaValid: {
-      clientMutationId: string;
-      status: string;
-    };
-  };
-}
-export interface CensorResponse {
-  data: {
-    mediaCensor: {
-      clientMutationId: string;
-      status: string;
-    };
-  };
-}
